@@ -1,0 +1,22 @@
+{
+	"elements":
+	[
+		{ "name": "PV_CURRENT", "type": "SelectVariable", "caption": "Aktuelle Leistung der PV-Anlage" },
+		{ "name": "PV_MAX",     "type": "NumberSpinner",  "caption": "Watt Peak der PV Anlage (in Watt)" , "digits" : "0"},
+  		{ "name": "LOCATION",   "type": "SelectLocation", "caption": "Standort der PV Anlage" },
+		{ "type": "Label",     "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
+		{ "name": "FC_STATION", "type": "NumberSpinner",  "caption": "DWD-Wetterstations ID" , "digits" : "0"},
+		{ "type": "ValidationTextBox", "name": "NN_NAME", "caption": "Name des Neuronalen Netzwerkes (keine Sonder und Leerzeichen)" },
+		{ "type": "CheckBox", "name": "FC_VARIABLE", "caption": "Erzeuge einzelne Variable für Forecast Heute und Morgen" },
+		{ "type": "CheckBox", "name": "FC_COMPARE", "caption": "Speichere Forecast in eigene Variable für späteren Vergleich" },
+		{ "type": "CheckBox", "name": "FC_CHART", "caption": "Generiere String Variable (HTML) für Vorhersagechart" },
+		{ "name": "NN_TRAIN_MAX",     "type": "NumberSpinner", "maximum": 365, "minimum": 0,  "caption": "Anzahl der Tage rückwirkend für Training" , "value": 365, "digits" : "0"},
+		{ "type": "Select", "name": "NN_TRAIN", "caption": "Neuronales Netzwerk", "value": 1,
+        "options": [
+            { "caption": "Training aktiv", "value": 1 },
+            { "caption": "Training inaktiv", "value": 0 },
+            { "caption": "Training initialisieren", "value": -1 }
+        ]
+    }
+	]
+}
