@@ -31,18 +31,6 @@ class PVForecast extends IPSModule
 
 		$this->RegisterTimer('Update', 1000*60*60, 'pvFC_Update($_IPS[\'TARGET\']);');
 
-		// Variablenprofile anlegen, wenn nicht vorhanden
-		if(!IPS_VariableProfileExists("pvFC_kwh")){
-			IPS_CreateVariableProfile("pvFC_kwh", 2);
-			IPS_SetVariableProfileText("pvFC_kwh", "", "kWh");
-
-		  }
-		  if(!IPS_VariableProfileExists("pvFC_wh")){
-			IPS_CreateVariableProfile("pvFC_wh", 2);
-			IPS_SetVariableProfileText("pvFC_wh", "", "Wh");
-		  }      
-
-
 	}
 
 	public function ApplyChanges() {
@@ -71,7 +59,7 @@ class PVForecast extends IPSModule
 						"lat"         => $latlon["latitude"],
 						"tempkoeff"   => $this->ReadPropertyFLoat('tempkoeff'),       // Temperaturkoeffizient lt. Datenblatt
 						"horizon"     => $this->ReadPropertyInteger('horizon'),       // Horizont für Einfallswinkel Sonne
-						"kwh"         => $this->ReadPropertyBoolean('kwh'),       // Horizont für Einfallswinkel Sonne
+						"kwh"         => $this->ReadPropertyBoolean('kwh'),       // ausgabe in KWH statt wh
 
 						// Beschattungsobjekt
 						"obj_direction" => $this->ReadPropertyInteger('obj_direction'),   // Himmelsrichtung des Beschattungsobjektes Grad von Norden =0
@@ -89,6 +77,7 @@ class PVForecast extends IPSModule
 		if($this->fc){
 			if($force)$this->fc->loadForecast(true);
 			$this->fc->CreateFCVariables($this->ReadPropertyInteger("forecastVariables"));
+			$this->fc->forecastChart();
 		}else{
 			return false;
 		}
@@ -172,6 +161,19 @@ class PVForecastcls{
 
 	#### CreateFCVariables ##########################################################
 	public function CreateFCVariables($days){
+
+		// Variablenprofile anlegen, wenn nicht vorhanden
+		if(!IPS_VariableProfileExists("pvFC_kwh")){
+			IPS_CreateVariableProfile("pvFC_kwh", 2);
+			IPS_SetVariableProfileText("pvFC_kwh", "", "kWh");
+
+		  }
+		  if(!IPS_VariableProfileExists("pvFC_wh")){
+			IPS_CreateVariableProfile("pvFC_wh", 2);
+			IPS_SetVariableProfileText("pvFC_wh", "", "Wh");
+		  }      
+
+
 		$cnt = 0;
 		$varprof = ($this->PV["kwh"])? "pvFC_kwh" : "pvFC_wh";
 		foreach($this->fc["daily"] as $fc){
@@ -184,6 +186,76 @@ class PVForecastcls{
 			if($cnt >= $days)break;
 			$cnt++;
 		}
+
+	}
+
+	#### Ausgabe als Chart #######################################################
+	function forecastChart(){
+		$id = $this->CreateVariableByName($this->instance,"PV Forecast Chart",3,"~HTMLBox");
+		$pv_max = ($this->PV["kwh"])? $this->PV["kwp"]/1000 : $this->PV["kwp"];
+		$html = "<style>
+					.pv{
+						background-color: yellow;
+						margin-left: 1px;
+						width: 30px;
+						display:inline-block;
+						font-size:9px;
+						color: black;
+						text-align:center;
+						vertical-align: bottom;
+					}
+					.pv_txt{
+						background-color: transparent;
+						padding-left: 1px;
+						width: 30px;
+						display:inline-block;
+						font-size:9px;
+						color: white;
+						text-align:center;
+						vertical-align: bottom;
+						border-top: solid 1px white;
+					}
+					.pv_day{
+						position: absolute;
+						top: 10px;
+						font-size: 14px;
+						font-weight: bold;
+						color: white;
+					}
+
+				</style>";
+		$html .= "<div style='width:100%; height:200px;overflow:hidden;'>";
+			$cnt=0;
+			$html .= "<div class='pv' style='height: 200px; width:1px;background-color:transparent;'></div>";
+			foreach ($this->fc["hourly"] as $fc){
+				
+				if($fc["hour"] > 6 && $fc["hour"] < 22 ){
+					$cnt++;
+					$height = round($fc["pv_estimate"]/$pv_max*100*2,0);
+					$html .= "<div class='pv' style='height: $height"."px'>".$fc["pv_estimate"]."</div>";
+				}					
+				if($cnt >96)break;
+			}
+		$html .="</div>";					
+		$html .= "<div style='width:100%; height:20px;overflow:hidden;'>";
+			$html .= "<div class='pv' style='height: 20px; width:1px;background-color:transparent;'></div>";
+			$cnt = 0;
+			foreach ($this->fc["hourly"] as $fc){
+				if($fc["hour"] > 6 && $fc["hour"] < 22 ){
+					$cnt++;
+					$height = round($fc["pv_estimate"]/$pv_max*100*2,0);
+					$html .= "<div class='pv_txt' style='height:20px'>".($fc["hour"]+1)."h</div>";
+					if($fc["hour"]==12){
+						$dayfc = $this->getDayForecast($fc["ts"]);
+						$dayfc = ($this->PV["kwh"])? $dayfc : $dayfc/1000;
+						$dayfc = round($dayfc,1);
+						$html.="<div class='pv_day' style='left:". (31 * $cnt )."px'>$dayfc kWh</div>";
+					}
+				}
+				if($cnt >96)break;
+			}
+		$html .="</div>";		
+		setvalue($id,$html);
 
 	}
 
