@@ -35,7 +35,13 @@ class PVForecast extends IPSModule
 
 	public function ApplyChanges() {
         //Never delete this line!
-        parent::ApplyChanges();
+        
+		if(empty($this->ReadPropertyString("dwd_station")) ||
+		   empty($this->ReadPropertyString("location"))){
+			echo "Achtung: Location und DWD Station eintragen!";
+			return;
+	   }
+	    parent::ApplyChanges();
 		$this->Update(true);
     }
 
