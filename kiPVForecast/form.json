@@ -1,22 +1,32 @@
 {
 	"elements":
 	[
-		{ "name": "PV_CURRENT", "type": "SelectVariable", "caption": "Aktuelle Leistung der PV-Anlage" },
-		{ "name": "PV_MAX",     "type": "NumberSpinner",  "caption": "Watt Peak der PV Anlage (in Watt)" , "digits" : "0"},
-  		{ "name": "LOCATION",   "type": "SelectLocation", "caption": "Standort der PV Anlage" },
-		{ "type": "Label",     "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
-		{ "name": "FC_STATION", "type": "NumberSpinner",  "caption": "DWD-Wetterstations ID" , "digits" : "0"},
-		{ "type": "ValidationTextBox", "name": "NN_NAME", "caption": "Name des Neuronalen Netzwerkes (keine Sonder und Leerzeichen)" },
-		{ "type": "CheckBox", "name": "FC_VARIABLE", "caption": "Erzeuge einzelne Variable für Forecast Heute und Morgen" },
-		{ "type": "CheckBox", "name": "FC_COMPARE", "caption": "Speichere Forecast in eigene Variable für späteren Vergleich" },
-		{ "type": "CheckBox", "name": "FC_CHART", "caption": "Generiere String Variable (HTML) für Vorhersagechart" },
-		{ "name": "NN_TRAIN_MAX",     "type": "NumberSpinner", "maximum": 365, "minimum": 0,  "caption": "Anzahl der Tage rückwirkend für Training" , "value": 365, "digits" : "0"},
-		{ "type": "Select", "name": "NN_TRAIN", "caption": "Neuronales Netzwerk", "value": 1,
-        "options": [
-            { "caption": "Training aktiv", "value": 1 },
-            { "caption": "Training inaktiv", "value": 0 },
-            { "caption": "Training initialisieren", "value": -1 }
-        ]
-    }
+		{ "name": "kwp",         "type": "NumberSpinner",  "caption": "Watt Peak der PV Anlage (in Watt)" , "digits" : "0"},
+  		{ "name": "location",    "type": "SelectLocation", "caption": "Standort der PV Anlage" },
+		{ "name": "dwd_station", "type": "ValidationTextBox",  "caption": "DWD-Wetterstations ID"},
+		{ "type": "Label",       "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
+		{ "name": "azimuth",     "type": "NumberSpinner",  "caption": "Azimuth (in Grad)" , "digits" : "0", "maximum": 180, "minimum": -180},
+		{ "name": "tilt",        "type": "NumberSpinner",  "caption": "Neigung der Module (in Grad)" , "digits" : "0", "maximum": 90, "minimum": 0},
+		{ "name": "efficiency",  "type": "NumberSpinner",  "caption": "Effizienz (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{ "name": "cloudeffect", "type": "NumberSpinner",  "caption": "Auswirkung Bewölkung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{ "name": "tempkoeff",   "type": "NumberSpinner",  "caption": "Temperaturskoeffizient " , "digits" : "2", "maximum": 1, "minimum": 0},
+		{ "name": "horizon",     "type": "NumberSpinner",  "caption": "Horizont für Sonnen Einfallswinkel (in Grad)" , "digits" : "0", "maximum": 45, "minimum": 0},
+
+		{ "name": "obj",            "type": "CheckBox",       "caption": "Verschattungsobjekt vorhanden" },
+		{ "name": "obj_direction",  "type": "NumberSpinner",  "caption": "Himmelsrichtung des Objektes (in Grad)" , "digits" : "0", "maximum": 365, "minimum": 0},
+		{ "name": "obj_distance",   "type": "NumberSpinner",  "caption": "Abstand des Objektes (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{ "name": "obj_height",     "type": "NumberSpinner",  "caption": "Objekthöhe (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{ "name": "obj_size",       "type": "NumberSpinner",  "caption": "Abeckungsgrad PV des Objektes (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{ "name": "obj_effect",     "type": "NumberSpinner",  "caption": "Auswirkung der Beschattung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+
+		{ "name": "forecastVariables", "type": "Select",  "caption": "Anzahl Variablen für Ausgabe Forecast", "value": 3,
+			"options": [
+				{ "caption": "Keine", "value": 0 },
+				{ "caption": "1 Tag im Voraus", "value": 1 },
+				{ "caption": "2 Tage im Voraus", "value": 2 },
+				{ "caption": "3 Tage im Voraus", "value": 3 },
+				{ "caption": "4 Tage im Voraus", "value": 4 }
+			]
+	    }
 	]
 }
