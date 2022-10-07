@@ -13,17 +13,25 @@ Folgende Befehle können in Scripten verwendet werden:
 
 $instance = ID Des PV Forecast Objektes
 
-pvFC_Update (integer $instance, boolean $force);
-  $force = true|false :fordert zwingende Aktualisierung an ohne cache
+
+**pvFC_Update (integer $instance, boolean $force)**
+
+$force = true|false :fordert zwingende Aktualisierung an ohne cache
   
-pvFC_getForecast(integer $instance): array()
-   Liefert die Forecast Daten als Array zurück.
+  
+**pvFC_getForecast(integer $instance): array()**
 
-pvFC_getHourForecast(integer $instance, integer $timestamp): integer
-   Liefert die vorhergesagten Watt der angegeben Stunde (Timestamp) zurück.
+Liefert die Forecast Daten als Array zurück.
 
-pvFC_getDayForecast(integer $instance, integer $timestamp): integer
-   Liefert die vorhergesagten Watt für den angefragten Tag (Timestamp) zurück.
+
+**pvFC_getHourForecast(integer $instance, integer $timestamp): integer**
+
+Liefert die vorhergesagten Watt der angegeben Stunde (Timestamp) zurück.
+
+
+**pvFC_getDayForecast(integer $instance, integer $timestamp): integer**
+
+Liefert die vorhergesagten Watt für den angefragten Tag (Timestamp) zurück.
 
 
 ___
