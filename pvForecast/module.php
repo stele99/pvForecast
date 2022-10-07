@@ -165,12 +165,13 @@ class PVForecastcls{
 		// Variablenprofile anlegen, wenn nicht vorhanden
 		if(!IPS_VariableProfileExists("pvFC_kwh")){
 			IPS_CreateVariableProfile("pvFC_kwh", 2);
-			IPS_SetVariableProfileText("pvFC_kwh", "", "kWh");
+			IPS_SetVariableProfileDigits("pvFC_kwh", 1); 
+			IPS_SetVariableProfileText("pvFC_kwh", "", " kWh");
 
 		  }
 		  if(!IPS_VariableProfileExists("pvFC_wh")){
 			IPS_CreateVariableProfile("pvFC_wh", 2);
-			IPS_SetVariableProfileText("pvFC_wh", "", "Wh");
+			IPS_SetVariableProfileText("pvFC_wh", "", " Wh");
 		  }      
 
 
@@ -411,9 +412,13 @@ class PVForecastcls{
 			$tempMinus = $PV["tempkoeff"] * (( (2.917 * $temp) - 27.5) - 25 ) * (100 - $clouds) / 100;               
 			$pv_estimate = $pv_estimate * (100-$tempMinus)/100;
 		}
-		$pv_estimate = round($pv_estimate/10)*10;
+		if($PV["kwh"]){
+			$pv_estimate = round($pv_estimate/1000,1);
+		}else{
+			$pv_estimate = round($pv_estimate/10)*10;
+		}		
 		$this->fc["hourly"][$k]["pv_estimate"] = $pv_estimate;
-		if($PV["kwh"])$this->fc["hourly"][$k]["pv_estimate"] = round($this->fc["hourly"][$k]["pv_estimate"] / 1000,1);
+		
 
 		} // foreach FC
 
