@@ -1,4 +1,4 @@
-# Photovolatik Forecast Module for IP-Symcon
+# Photovoltaik Forecast Module for IP-Symcon
 PV Forecast with weather Data from DWD
 
 ___
