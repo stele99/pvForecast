@@ -14,6 +14,7 @@ class PVForecast extends IPSModule
 		$this->RegisterPropertyString('dwd_station', '');
 		$this->RegisterPropertyInteger('azimuth', 0);
 		$this->RegisterPropertyInteger('tilt', 30);
+		$this->RegisterPropertyInteger('type', 0);
 		$this->RegisterPropertyInteger('efficiency', 95);
 		$this->RegisterPropertyInteger('cloudeffect', 65);
 		$this->RegisterPropertyFloat('tempkoeff', 0.65);
@@ -44,11 +45,12 @@ class PVForecast extends IPSModule
 			$latlon["longitude"] = 0;
 			$latlon["latitude"] = 0;
 		}
+		$pvtype = ( $this->ReadPropertyInteger('kwp') == 1 )? "D" : "";
 
 		$PV      =[     "kwp"         =>  $this->ReadPropertyInteger('kwp'), 
 						"azimuth"     =>  $this->ReadPropertyInteger('azimuth'),      // eigentlich sind es 30 aber soll ist vergleich zeigt leichte verschiebung vom abend - also mehr nach rechts drehen
 						"tilt"        =>  $this->ReadPropertyInteger('tilt'),
-						"pvtype"      => "D",                                         // D= Dachform geständert, Ausrichtung der offenen seite = azimuth
+						"pvtype"      => $pvtype,                                         // D= Dachform geständert, Ausrichtung der offenen seite = azimuth
 						"efficiency"  =>  $this->ReadPropertyInteger('efficiency'),
 						"cloudeffect" =>  $this->ReadPropertyInteger('cloudeffect'),  // Effekt für Leistungsreduktion bei Bewölkung in Prozent
 						"lon"         => $latlon["longitude"],
