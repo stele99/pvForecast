@@ -48,7 +48,7 @@ class PVForecast extends IPSModule
 	public function ApplyChanges() {
         //Never delete this line!
         parent::ApplyChanges();
-		$this->Update();
+		$this->Update(true);
     }
 
 	private function initfc(){
@@ -177,6 +177,7 @@ class PVForecastcls{
 		foreach($this->fc["daily"] as $fc){
 			$varName = ($cnt == 0)? 'Vorhersage Heute' : "Vorhersage Heute + $cnt";
 			$id = $this->CreateVariableByName($this->instance,$varName,2, $varprof);
+			IPS_SetVariableCustomProfile($id, $varprof);
 			
 			if($cnt == 0 && date("G")<10 || $cnt > 0) setValue($id, $fc["pv_estimate"]);
 
