@@ -7,10 +7,17 @@
 		{ "type": "Label",       "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
 		{ "name": "azimuth",     "type": "NumberSpinner",  "caption": "Azimuth (in Grad)" , "digits" : "0", "maximum": 180, "minimum": -180},
 		{ "name": "tilt",        "type": "NumberSpinner",  "caption": "Neigung der Module (in Grad)" , "digits" : "0", "maximum": 90, "minimum": 0},
+		{ "name": "type",        "type": "Select",  "caption": "Aufständerung", "value": 0,
+			"options": [
+				{ "caption": "Standard alle gleich", "value": 0 },
+				{ "caption": "Dachständerung /\\", "value": 1 }
+			]
+	    },
 		{ "name": "efficiency",  "type": "NumberSpinner",  "caption": "Effizienz (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
 		{ "name": "cloudeffect", "type": "NumberSpinner",  "caption": "Auswirkung Bewölkung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
 		{ "name": "tempkoeff",   "type": "NumberSpinner",  "caption": "Temperaturskoeffizient " , "digits" : "2", "maximum": 1, "minimum": 0},
 		{ "name": "horizon",     "type": "NumberSpinner",  "caption": "Horizont für Sonnen Einfallswinkel (in Grad)" , "digits" : "0", "maximum": 45, "minimum": 0},
+		{ "name": "kwh",            "type": "CheckBox",       "caption": "kWh statt Wh" },		
 
 		{ "name": "obj",            "type": "CheckBox",       "caption": "Verschattungsobjekt vorhanden" },
 		{ "name": "obj_direction",  "type": "NumberSpinner",  "caption": "Himmelsrichtung des Objektes (in Grad)" , "digits" : "0", "maximum": 365, "minimum": 0},
