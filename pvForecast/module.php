@@ -297,12 +297,12 @@ class PVForecastcls{
 				$lf = $lf - $lf_minusA;
 
 				// Neigungswikel und Sonne            
-				$elev_abw = 90 - $sun_elevation  - $A["tilt"];
+				$elev_abw = 90 - $sun_elevation  - $PV["tilt"];
 				$x = $elev_abw;
 				$lf_minusE   = (1/100) * pow ($x, 2); // Neue Formel anhand Tabellen und Werten 
 
-				if($sun_elevation < @$A["horizon"] + 5) $lf_minusE = 50; // Sonnenuntergang            
-				if($sun_elevation < @$A["horizon"] ) $lf_minusE = 100; // Sonnenuntergang
+				if($sun_elevation < @$PV["horizon"] + 5) $lf_minusE = 50; // Sonnenuntergang            
+				if($sun_elevation < @$PV["horizon"] ) $lf_minusE = 100; // Sonnenuntergang
 				$lf_minusE = round($lf_minusE,1);
 				$lf = $lf - $lf_minusE;
 			
