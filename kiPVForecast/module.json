@@ -1,14 +1,14 @@
 {
 	"id": "{B4771CF7-039A-3529-7FA8-906C7FB5DB2A}",
-	"name": "kiPVForecast",
+	"name": "pvForecast",
 	"type": 3,
 	"vendor": "stele99",
 	"aliases": 
 	[
-		"KI PV Forecast for IP Symcon"
+		"PV Forecast"
 	],
 	"parentRequirements": [],
 	"childRequirements": [],
 	"implemented": [],
-	"prefix": "KiPV"
+	"prefix": "pvFC"
 }
