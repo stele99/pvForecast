@@ -19,7 +19,8 @@ class PVForecast extends IPSModule
 		$this->RegisterPropertyInteger('cloudeffect', 65);
 		$this->RegisterPropertyFloat('tempkoeff', 0.65);
 		$this->RegisterPropertyInteger('horizon', 0);
-		
+		$this->RegisterPropertyBoolean('kwh', false);
+
 		$this->RegisterPropertyBoolean('obj', false);
 		$this->RegisterPropertyInteger('obj_direction', 0);
 		$this->RegisterPropertyInteger('obj_distance', 0);
@@ -29,6 +30,19 @@ class PVForecast extends IPSModule
 		$this->RegisterPropertyInteger('forecastVariables', 3);
 
 		$this->RegisterTimer('Update', 1000*60*60, 'pvFC_Update($_IPS[\'TARGET\']);');
+
+		// Variablenprofile anlegen, wenn nicht vorhanden
+		if(!IPS_VariableProfileExists("pvFC_kwh")){
+			IPS_CreateVariableProfile("pvFC_kwh", 2);
+			IPS_SetVariableProfileText("pvFC_kwh", "", "kWh");
+
+		  }
+		  if(!IPS_VariableProfileExists("pvFC_wh")){
+			IPS_CreateVariableProfile("pvFC_wh", 2);
+			IPS_SetVariableProfileText("pvFC_wh", "", "Wh");
+		  }      
+
+
 	}
 
 	public function ApplyChanges() {
@@ -57,6 +71,7 @@ class PVForecast extends IPSModule
 						"lat"         => $latlon["latitude"],
 						"tempkoeff"   => $this->ReadPropertyFLoat('tempkoeff'),       // Temperaturkoeffizient lt. Datenblatt
 						"horizon"     => $this->ReadPropertyInteger('horizon'),       // Horizont für Einfallswinkel Sonne
+						"kwh"         => $this->ReadPropertyBoolean('kwh'),       // Horizont für Einfallswinkel Sonne
 
 						// Beschattungsobjekt
 						"obj_direction" => $this->ReadPropertyInteger('obj_direction'),   // Himmelsrichtung des Beschattungsobjektes Grad von Norden =0
@@ -158,9 +173,10 @@ class PVForecastcls{
 	#### CreateFCVariables ##########################################################
 	public function CreateFCVariables($days){
 		$cnt = 0;
+		$varprof = ($this->PV["kwh"])? "pvFC_kwh" : "pvFC_wh";
 		foreach($this->fc["daily"] as $fc){
 			$varName = ($cnt == 0)? 'Vorhersage Heute' : "Vorhersage Heute + $cnt";
-			$id = $this->CreateVariableByName($this->instance,$varName,2, "~Watt");
+			$id = $this->CreateVariableByName($this->instance,$varName,2, $varprof);
 			
 			if($cnt == 0 && date("G")<10 || $cnt > 0) setValue($id, $fc["pv_estimate"]);
 
@@ -324,12 +340,14 @@ class PVForecastcls{
 		}
 		$pv_estimate = round($pv_estimate/10)*10;
 		$this->fc["hourly"][$k]["pv_estimate"] = $pv_estimate;
+		if($PV["kwh"])$this->fc["hourly"][$k]["pv_estimate"] = round($this->fc["hourly"][$k]["pv_estimate"] / 1000,1);
 
 		} // foreach FC
 
 		// Tagesforecast
 		$day_fc = 0;
-		$d_o =0;
+		$d_o = 0;
+		$k_o = 0;
 		foreach($this->fc["daily"] as $k => $fc){
 			$d = date("z", $fc["ts"]);
 			
