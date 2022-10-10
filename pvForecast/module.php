@@ -433,7 +433,8 @@ class PVForecastcls{
 		$d_o = 0;
 		$k_o = 0;
 		foreach($this->fc["daily"] as $k => $fc){
-			$d = date("z", $fc["ts"]);
+			
+			$d = date("Ymd", $fc["ts"]);
 			
 			if($d_o != $d && $d_o != 0){
 					$this->fc["daily"][$k_o]["pv_estimate"] = $day_fc;
@@ -441,14 +442,13 @@ class PVForecastcls{
 			}
 
 			foreach($this->fc["hourly"] as $kh => $fch){
-				if($d == date("z", $fch["ts"])){
+				if($d == date("Ymd", $fch["ts"])){
 					$day_fc+= $fch["pv_estimate"];
 				}
 			}
 
 			$k_o = $k;
 			$d_o = $d;
-
 		}
 	} // function Forecast
 
@@ -703,7 +703,7 @@ class PVForecastcls{
 			}
 		}
 		foreach($this->dwd_fca["hourly"] as $k => $fc){
-			$setval = trim($valA[$k]);
+			$setval = trim(@$valA[$k]);
 			
 			// ############ Aufbereitung der Daten je nach Daten aus XML ################
 			if($idstr == "SunD1") $setval = $setval / 60;
