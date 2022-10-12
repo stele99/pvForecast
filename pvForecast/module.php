@@ -4,6 +4,7 @@ class PVForecast extends IPSModule
 {
 
 	private $fc;
+	private $force;
 	public function Create()
 	{
 		//Never delete this line!
@@ -81,10 +82,16 @@ class PVForecast extends IPSModule
 		if(!empty($station))$this->fc = new PVForecastcls($station, $PV, $this->InstanceID);
 	}
 
-	public function Update($force=false){
+	public function UpdateForce(){
+		$this->force = true;
+		$this->Update();
+		$this->force = false;
+	}
+
+	public function Update(){
 		$this->initfc();
 		if($this->fc){
-			if($force)$this->fc->loadForecast(true);
+			if($this->force)$this->fc->loadForecast(true);
 			$this->fc->CreateFCVariables($this->ReadPropertyInteger("forecastVariables"));
 			$this->fc->forecastChart();
 		}else{
@@ -709,6 +716,7 @@ class PVForecastcls{
 			$setval = trim(@$valA[$k]);
 			
 			// ############ Aufbereitung der Daten je nach Daten aus XML ################
+			$setval = (trim($setval == '-'))? 0 : $setval;
 			if($idstr == "SunD1") $setval = $setval / 60;
 			if($idstr == "RRad1") $setval = floatval($setval);
 			if($idstr == "T5cm")  $setval = $setval - 273;
