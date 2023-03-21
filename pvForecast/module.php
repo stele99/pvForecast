@@ -17,7 +17,7 @@ class PVForecast extends IPSModule
 		$this->RegisterPropertyInteger('tilt', 30);
 		$this->RegisterPropertyInteger('type', 0);
 		$this->RegisterPropertyInteger('efficiency', 95);
-		$this->RegisterPropertyInteger('cloudeffect', 65);
+		#$this->RegisterPropertyInteger('cloudeffect', 65);
 		$this->RegisterPropertyFloat('tempkoeff', 0.65);
 		$this->RegisterPropertyInteger('horizon', 0);
 		$this->RegisterPropertyBoolean('kwh', false);
@@ -57,14 +57,14 @@ class PVForecast extends IPSModule
 			$latlon["longitude"] = 0;
 			$latlon["latitude"] = 0;
 		}
-		$pvtype = ( $this->ReadPropertyInteger('kwp') == 1 )? "D" : "";
+		$pvtype = ( $this->ReadPropertyInteger('type') == 1 )? "D" : "";
 
 		$PV      =[     "kwp"         =>  $this->ReadPropertyInteger('kwp'), 
 						"azimuth"     =>  $this->ReadPropertyInteger('azimuth'),      // eigentlich sind es 30 aber soll ist vergleich zeigt leichte verschiebung vom abend - also mehr nach rechts drehen
 						"tilt"        =>  $this->ReadPropertyInteger('tilt'),
 						"pvtype"      => $pvtype,                                         // D= Dachform geständert, Ausrichtung der offenen seite = azimuth
 						"efficiency"  =>  $this->ReadPropertyInteger('efficiency'),
-						"cloudeffect" =>  $this->ReadPropertyInteger('cloudeffect'),  // Effekt für Leistungsreduktion bei Bewölkung in Prozent
+						#"cloudeffect" =>  $this->ReadPropertyInteger('cloudeffect'),  // Effekt für Leistungsreduktion bei Bewölkung in Prozent
 						"lon"         => $latlon["longitude"],
 						"lat"         => $latlon["latitude"],
 						"tempkoeff"   => $this->ReadPropertyFLoat('tempkoeff'),       // Temperaturkoeffizient lt. Datenblatt
@@ -261,7 +261,7 @@ class PVForecastcls{
 				if($fc["hour"] > 6 && $fc["hour"] < 22 ){
 					$cnt++;
 					$height = round($fc["pv_estimate"]/$pv_max*100*2,0);
-					$html .= "<div class='pv_txt' style='height:20px'>".($fc["hour"]+1)."h</div>";
+					$html .= "<div class='pv_txt' style='height:20px'>".($fc["hour"])."h</div>";
 					if($fc["hour"]==12){
 						$dayfc = $this->getDayForecast($fc["ts"]);
 						$dayfc = ($this->PV["kwh"])? $dayfc : $dayfc/1000;
@@ -353,7 +353,8 @@ class PVForecastcls{
 				$lfB = $lf_minusShade;
 				
 				$az_abwA = round(abs($sun_azimuth - 180 + 90 - $PV["azimuth"]),1);
-				$az_abwB = round(abs($sun_azimuth - 180 - 90 - $PV["azimuth"]),1);                
+				$az_abwB = round(abs($sun_azimuth - 180 - 90 - $PV["azimuth"]),1);              
+
 				if($az_abwA > 180 ){
 					$lf_minusAA = 90;
 				}else{                    
@@ -364,7 +365,8 @@ class PVForecastcls{
 				}else{
 					$lf_minusBA = sin( (1/58) * $az_abwB + 155.5) * 26 + 26; // Mit Daten aus Tabelle und näherung über probieren der Sinus-Funktion
 				}                
-				
+                
+
 				$lfA = $lfA - $lf_minusAA * 0.90; // fällt schwächer ins gewicht
 				$lfB = $lfB - $lf_minusBA * 0.90; // fällt schwächer ins gewicht
 
@@ -380,15 +382,21 @@ class PVForecastcls{
 				$lfB = $lfB - $lf_minusE  ; // fällt schwächer ins gewicht;
 
 				// Bewölkung hängt von der Wolkendicke und von dem Einstrahlungswinkel ab.
+				/* wir rechnen mit Globalstrahlung früher mit Wolken
 				$lf_cloud_dec = (100 - (pow($clouds,2.4)/600) * $PV["cloudeffect"]/100) /100;
 				
 				$lfA = $lfA * $lf_cloud_dec;
 				$lfB = $lfB * $lf_cloud_dec;
+				*/
+
 				$lfA = ($lfA< 0 )? 0 : $lfA;                
 				$lfB = ($lfB< 0 )? 0 : $lfB;                
-				
-				$pv_estimate =  ( $PV["kwp"] / 2) * ($lfA / 100) * $PV["efficiency"]/100;
-				$pv_estimate += ( $PV["kwp"] / 2) * ($lfB / 100) * $PV["efficiency"]/100;
+
+                $gs  = $fc["radiation"] * ($fc["radiation_intensity"]/100);
+                $base_Watts = $gs * $PV["kwp"]/1000 * $PV["efficiency"]/100;    
+
+				$pv_estimate =  ($base_Watts/ 2) * ($lfA / 100)  ;
+				$pv_estimate += ( $base_Watts / 2) * ($lfB / 100) ;
 
 				$pv_estimate = $pv_estimate * PVForecastcls::TYPE_D_CORRECTION;
 
@@ -414,11 +422,18 @@ class PVForecastcls{
 			
 				
 				// Bewölkung hängt von der Wolkendicke und von dem Einstrahlungswinkel ab.
-				$lf_cloud_dec = (100 - (pow($clouds,2.4)/600) * $PV["cloudeffect"]/100) /100;
-
+				/* Wir rechnen ab sofort mit Globalstrahlung
+					$lf_cloud_dec = (100 - (pow($clouds,2.4)/600) * $PV["cloudeffect"]/100) /100;
 				$lf = $lf * $lf_cloud_dec;
-				$lf = ($lf < 0 )? 0 : $lf;                
-				$pv_estimate = $PV["kwp"] * ($lf / 100) * $PV["efficiency"]/100;
+				*/
+
+				$lf = ($lf < 0 )? 0 : $lf;     
+				
+                $gs  = $fc["radiation"] * ($fc["radiation_intensity"]/100);
+                
+				$base_Watts = $gs * $PV["kwp"] * 0.75 / 1000;    		
+			
+				$pv_estimate = $base_Watts * ($lf / 100) * $PV["efficiency"]/100;
 			} // Staenderung
 
 			// Temperaturverlust
@@ -428,6 +443,7 @@ class PVForecastcls{
 			$tempMinus = $PV["tempkoeff"] * (( (2.917 * $temp) - 27.5) - 25 ) * (100 - $clouds) / 100;               
 			$pv_estimate = $pv_estimate * (100-$tempMinus)/100;
 		}
+
 		if($PV["kwh"]){
 			$pv_estimate = round($pv_estimate/1000,1);
 		}else{
