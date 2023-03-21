@@ -14,7 +14,6 @@
 			]
 	    },
 		{ "name": "efficiency",  "type": "NumberSpinner",  "caption": "Effizienz (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
-		{ "name": "cloudeffect", "type": "NumberSpinner",  "caption": "Auswirkung Bewölkung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
 		{ "name": "tempkoeff",   "type": "NumberSpinner",  "caption": "Temperaturskoeffizient " , "digits" : "2", "maximum": 1, "minimum": 0},
 		{ "name": "horizon",     "type": "NumberSpinner",  "caption": "Horizont für Sonnen Einfallswinkel (in Grad)" , "digits" : "0", "maximum": 45, "minimum": 0},
 		{ "name": "kwh",            "type": "CheckBox",       "caption": "kWh statt Wh" },		
