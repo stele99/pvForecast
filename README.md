@@ -1,5 +1,6 @@
 # Photovoltaik Forecast Module for IP-Symcon
 PV Forecast with weather Data from DWD
+![image](https://user-images.githubusercontent.com/20149985/227571964-29a33f87-b62d-4322-a246-348a74e856ba.png)
 
 
 ## Setup
