@@ -46,7 +46,7 @@ class PVForecast extends IPSModule
 			}
 		}
 	    
-		$this->Update(true);
+		$this->UpdateForce(true);
     }
 
 	private function initfc(){
@@ -193,6 +193,9 @@ class PVForecastcls{
 
 		$cnt = 0;
 		$varprof = ($this->PV["kwh"])? "pvFC_kwh" : "pvFC_wh";
+		if(!isset($this->fc["daily"])){
+			return false;
+		}
 		foreach($this->fc["daily"] as $fc){
 			$varName = ($cnt == 0)? 'Vorhersage Heute' : "Vorhersage Heute + $cnt";
 			$id = $this->CreateVariableByName($this->instance,$varName,2, $varprof);
@@ -244,6 +247,9 @@ class PVForecastcls{
 		$html .= "<div style='width:100%; height:200px;overflow:hidden;'>";
 			$cnt=0;
 			$html .= "<div class='pv' style='height: 200px; width:1px;background-color:transparent;'></div>";
+			if(!isset($this->fc["hourly"])){
+				return false;
+			}
 			foreach ($this->fc["hourly"] as $fc){
 				
 				if($fc["hour"] > 6 && $fc["hour"] < 22 ){
@@ -306,7 +312,10 @@ class PVForecastcls{
 		$lat      = $PV["lat"];
 		$lon      = $PV["lon"];
 		$this->fc = $this->dwd_fca;
-
+		
+		if(!isset($this->fc["hourly"])){
+			return false;
+		}
 		foreach($this->fc["hourly"] as $k => $fc){         
 			$ts       = $fc["ts"];
 			$clouds   = $fc["clouds"];
@@ -392,7 +401,7 @@ class PVForecastcls{
 				$lfA = ($lfA< 0 )? 0 : $lfA;                
 				$lfB = ($lfB< 0 )? 0 : $lfB;                
 
-                $gs  = $fc["radiation"] * ($fc["radiation_intensity"]/100);
+                $gs  = @$fc["radiation"] * (@$fc["radiation_intensity"]/100);
                 $base_Watts = $gs * $PV["kwp"]/1000 * $PV["efficiency"]/100;    
 
 				$pv_estimate =  ($base_Watts/ 2) * ($lfA / 100)  ;
@@ -605,12 +614,18 @@ class PVForecastcls{
 		if(! is_dir(dirname(__FILE__) . "/cache")){
 			mkdir(dirname(__FILE__) . "/cache");    
 		}
+		$station = trim($station);
 		$url       = "http://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/" . $station . "/kml/MOSMIX_L_LATEST_" . $station . ".kmz";
 		$fn_cache  = dirname(__FILE__) . "/cache/".$this->instance."-".$station.".cache";
 		$fn_xml    = dirname(__FILE__) . "/cache/".$this->instance."-".$station.".xml";
+	
 
 		date_default_timezone_set("Europe/Berlin");
-		$response = file_get_contents($url);
+		$response = @file_get_contents($url);
+		if(empty($response)){
+			echo "Wetterstation ungültig. kann MOSMIX KML nicht laden ($url)";
+			return false;
+		}
 		file_put_contents($fn_cache, $response); 
 		$zip = new ZipArchive;
 		$res = $zip->open($fn_cache);
@@ -660,6 +675,7 @@ class PVForecastcls{
 		$this->dwd_getData("SunD1", "sun", $xml);
 		$this->dwd_getData("T5cm", "temp", $xml);        
 
+	
 		// Tageswerte berechnen
 		$dayOld = 0;
 		$t_min = 999;
@@ -721,16 +737,29 @@ class PVForecastcls{
 	private function dwd_getData($idstr, $idtxt, &$xml){
 		
 		$gs = $xml->Document->Placemark->ExtendedData;
+		$found = false;
 		foreach ($gs->Forecast as $g) {
 			$id = $g->attributes()["elementName"][0]->__toString();
 			if ($id == $idstr) {
-			$val = $g->value->__toString();
-			$valA = str_split($val, 11);
+				$val = $g->value->__toString();
+				$valA = str_split($val, 11);
+				$found = true;
 			}
 		}
+		if(!$found){
+			echo "Attribute $idstr not found in Forecast XML";
+			return false;
+		}
+		//prüfen ob nur - im Array ist.
+		$valChk = implode("",$valA);
+		if (preg_match('/^[ -]*$/', $valChk)){
+			echo "$idstr not available in forecast Data.\n";
+			return;
+		}
+
+
 		foreach($this->dwd_fca["hourly"] as $k => $fc){
 			$setval = trim(@$valA[$k]);
-			
 			// ############ Aufbereitung der Daten je nach Daten aus XML ################
 			$setval = (trim($setval == '-'))? 0 : $setval;
 			if($idstr == "SunD1") $setval = $setval / 60;
