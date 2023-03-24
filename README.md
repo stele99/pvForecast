@@ -6,6 +6,12 @@ PV Forecast with weather Data from DWD
 Erstellen einer instanz pvForecast.
 Objektparameter pflegen.
 
+Wichtig ist, dass eine DWD Wetterstations-ID verwendet wird, die die Globalstrahlung in den Vorhersagedaten ausgibt, das tun leider nicht alle.
+Falls eine Station gewählt wurde, die keine Daten ausgibt, wird eine Fehlermeldung ausgegeben, dass der Parameter RRad1 nicht gefunden wurde.
+Bitte in diesem Fall andere Wetterstation wählen. 
+
+Die Forecasts werden alle Stunde aktualisert, außer der aktuelle Tag dieser wird nur bis 9h aktualisiert und dann bleibt der Tagesforecast unverändert.
+
 # Wetter und Position
 Geben Sie den Längen und Breitengrad der Module an
 Wichtig ist noch eine Wetterstation des DWD in der Nähe zu wählen, die auch die Globalstrahlung ausgibt. Dies ist leider nicht bei allen Stationen der Fall.
