@@ -948,6 +948,7 @@ class PVForecastcls{
         
         $dayIST = 0;
         $dayFC  = 0;
+		$dayFC_orig = 0;
         $dayold = 0;
         $day = 0;
         foreach($dat as $d => $hs){
@@ -957,7 +958,8 @@ class PVForecastcls{
             foreach($hs as $h => $e){
                 if($day != $dayold){
                     echo "-------------------------------------------------------------\n";
-                    echo str_pad(round($dayFC,1),18, " ", STR_PAD_LEFT);
+                    echo str_pad(round($dayFC_orig,1),18, " ", STR_PAD_LEFT);
+					echo str_pad(round($dayFC,1),7, " ", STR_PAD_LEFT);
                     echo str_pad(round($dayIST,1),7, " ", STR_PAD_LEFT);
                     $fce = ($dayFC == 0)? 0.1: $dayFC;
                     echo str_pad(round( ($dayIST - $fce) / $fce * 100 ), 7, " ", STR_PAD_LEFT)."%";                    
@@ -965,6 +967,7 @@ class PVForecastcls{
                     echo "=============================================================\n";
                     $dayIST = 0;
                     $dayFC = 0;
+					$dayFC_orig = 0;
                 }
 
                 echo str_pad($d, 3, " ", STR_PAD_LEFT); 
@@ -987,12 +990,14 @@ class PVForecastcls{
                 echo "\n";
                 $dayIST += @$e["ist"];
                 $dayFC  += $e["fc"];
+				$dayFC_orig += @$e["fc_orig"];
                 $day_old = $day;
             }
 
             echo "---------------------------------------------------------------\n";
             
-			echo str_pad(round($dayFC,1),18, " ", STR_PAD_LEFT);
+			echo str_pad(round($dayFC_orig,1),18, " ", STR_PAD_LEFT);
+			echo str_pad(round($dayFC,1),7, " ", STR_PAD_LEFT);
             echo str_pad(round($dayIST,1),7, " ", STR_PAD_LEFT);
             $fce = ($dayFC == 0)? 0.1: $dayFC;
             echo str_pad(round( ($dayIST - $fce) / $fce * 100 ), 7, " ", STR_PAD_LEFT)."%";                                
