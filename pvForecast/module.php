@@ -16,7 +16,7 @@ class PVForecast extends IPSModule
 		$this->RegisterPropertyInteger('azimuth', 0);
 		$this->RegisterPropertyInteger('tilt', 30);
 		$this->RegisterPropertyInteger('type', 0);
-		$this->RegisterPropertyInteger('efficiency', 95);
+		$this->RegisterPropertyInteger('efficiency', 75);
 		#$this->RegisterPropertyInteger('cloudeffect', 65);
 		$this->RegisterPropertyFloat('tempkoeff', 0.65);
 		$this->RegisterPropertyInteger('horizon', 0);
