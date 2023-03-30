@@ -954,7 +954,8 @@ class PVForecastcls{
         foreach($dat as $d => $hs){
             ksort($hs);
             $dayIST = 0;
-            $dayFC = 0;            
+            $dayFC = 0; 
+			$dayFC_orig = 0;           
             foreach($hs as $h => $e){
                 if($day != $dayold){
                     echo "-------------------------------------------------------------\n";
