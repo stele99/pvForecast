@@ -3,8 +3,6 @@
 	[
 		{ "name": "kwp",         "type": "NumberSpinner",  "caption": "Watt Peak der PV Anlage (in Watt)" , "digits" : "0"},
   		{ "name": "location",    "type": "SelectLocation", "caption": "Standort der PV Anlage" },
-		{ "name": "dwd_station", "type": "ValidationTextBox",  "caption": "DWD-Wetterstations ID"},
-		{ "type": "Label",       "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
 		{ "name": "azimuth",     "type": "NumberSpinner",  "caption": "Azimuth (in Grad)" , "digits" : "0", "maximum": 180, "minimum": -180},
 		{ "name": "tilt",        "type": "NumberSpinner",  "caption": "Neigung der Module (in Grad)" , "digits" : "0", "maximum": 90, "minimum": 0},
 		{ "name": "type",        "type": "Select",  "caption": "Aufständerung", "value": 0,
@@ -18,21 +16,65 @@
 		{ "name": "horizon",     "type": "NumberSpinner",  "caption": "Horizont für Sonnen Einfallswinkel (in Grad)" , "digits" : "0", "maximum": 45, "minimum": 0},
 		{ "name": "kwh",            "type": "CheckBox",       "caption": "kWh statt Wh" },		
 
-		{ "name": "obj",            "type": "CheckBox",       "caption": "Verschattungsobjekt vorhanden" },
-		{ "name": "obj_direction",  "type": "NumberSpinner",  "caption": "Himmelsrichtung des Objektes (in Grad)" , "digits" : "0", "maximum": 365, "minimum": 0},
-		{ "name": "obj_distance",   "type": "NumberSpinner",  "caption": "Abstand des Objektes (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
-		{ "name": "obj_height",     "type": "NumberSpinner",  "caption": "Objekthöhe (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
-		{ "name": "obj_size",       "type": "NumberSpinner",  "caption": "Abeckungsgrad PV des Objektes (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
-		{ "name": "obj_effect",     "type": "NumberSpinner",  "caption": "Auswirkung der Beschattung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+		{
+            "type": "ExpansionPanel",
+            "caption": "Vorhersage Parameter",
+            "items": [
+				{ "type": "Label",       "caption": "2 Wetter-Vorhersagemodelle nutzbar (DWD-ICON über open-meteo.com oder DWD-MOSMIX direkt über den DWD-Server" },
+				{ "type": "Label",       "caption": "Bei ICON wird der Standort der PV Anlage genutzt, be Mosmix muss eine Station angegeben werden." },
+				
+				{ "name": "fc_type", "type": "Select",  "caption": "Vorhersagemodell", "value": "dwd-icon",
+				"options": [
+				    	{ "caption": "DWD MOSMIX", "value": "dwd-mosmix" },
+					    { "caption": "DWD ICON", "value": "dwd-icon" }
+				    ]
+			    },
 
-		{ "name": "forecastVariables", "type": "Select",  "caption": "Anzahl Variablen für Ausgabe Forecast", "value": 3,
-			"options": [
-				{ "caption": "Keine", "value": 0 },
-				{ "caption": "1 Tag im Voraus", "value": 1 },
-				{ "caption": "2 Tage im Voraus", "value": 2 },
-				{ "caption": "3 Tage im Voraus", "value": 3 },
-				{ "caption": "4 Tage im Voraus", "value": 4 }
+				{ "name": "dwd_station", "type": "ValidationTextBox",  "caption": "DWD-Wetterstations ID, nur bei MOSMIX"},
+				{ "type": "Label",       "caption": "DWD-Stationsfinder: https://wettwarn.de/mosmix/mosmix.html" },
+			
+				{ "name": "forecastVariables", "type": "Select",  "caption": "Anzahl Variablen für Ausgabe Forecast", "value": 3,
+					"options": [
+						{ "caption": "Keine", "value": 0 },
+						{ "caption": "1 Tag im Voraus", "value": 1 },
+						{ "caption": "2 Tage im Voraus", "value": 2 },
+						{ "caption": "3 Tage im Voraus", "value": 3 },
+						{ "caption": "4 Tage im Voraus", "value": 4 }
+					]
+						
+				}
+		
 			]
-	    }
+
+		},
+
+
+
+
+		
+		{
+            "type": "ExpansionPanel",
+            "caption": "Auto-Tune Optimierung",
+            "items": [
+					{"type": "Label",       "caption": "Bei Autotune werden Forecast-Daten mit Ist Daten der letzten 30 Tage verglichen und so einen Korrekturfaktor errechnet. Dieser wird für Vorhersagen verwendet um diese zu optimieren." },
+					{"type": "Label",       "caption": "Dazu müssen Sie eine Variable angeben, die die kumulierte Tagesleistung der PV Anlage enthält. Diese Variable sollte minium alle 15 Minuten aktualisiert werden." },
+					{ "name": "autotune",    "type": "CheckBox",       "caption": "Vorhersage optimieren durch IST-Daten" },		
+					{ "name": "pv_id",       "type": "SelectVariable",  "requiredLogging": 1,   "caption": "Kummulierte Tagesleistung der PV-Anlage (nur für Optimierung durch IST-Daten)" }	
+			]
+		},
+
+		{
+            "type": "ExpansionPanel",
+            "caption": "Verschattung",
+            "items": [
+				{ "name": "obj",            "type": "CheckBox",       "caption": "Verschattungsobjekt vorhanden" },
+				{ "name": "obj_direction",  "type": "NumberSpinner",  "caption": "Himmelsrichtung des Objektes (in Grad)" , "digits" : "0", "maximum": 365, "minimum": 0},
+				{ "name": "obj_distance",   "type": "NumberSpinner",  "caption": "Abstand des Objektes (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
+				{ "name": "obj_height",     "type": "NumberSpinner",  "caption": "Objekthöhe (in Meter)" , "digits" : "0", "maximum": 100, "minimum": 0},
+				{ "name": "obj_size",       "type": "NumberSpinner",  "caption": "Abeckungsgrad PV des Objektes (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0},
+				{ "name": "obj_effect",     "type": "NumberSpinner",  "caption": "Auswirkung der Beschattung (in Prozent)" , "digits" : "0", "maximum": 100, "minimum": 0}
+			]
+		}
+		
 	]
 }
