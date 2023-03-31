@@ -40,8 +40,8 @@ class PVForecast extends IPSModule
 	public function ApplyChanges() {
         //Never delete this line!
 		parent::ApplyChanges();
-		$name = IPS_GetName($_IPS["TARGET"]);
-		if(strpos($name,"nnamed") === false){
+		$name = IPS_GetName(@$_IPS["TARGET"]);
+		if(strpos($name,"nnamed") === false && !empty($name)){
 			if((empty($this->ReadPropertyString("dwd_station")) && $this->ReadPropertyString("fc_type") == "dwd-mosmix")||
 				empty($this->ReadPropertyString("location"))){
 				echo "Achtung: Location und DWD Station eintragen!";
