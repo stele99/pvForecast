@@ -148,11 +148,6 @@ class PVForecast extends IPSModule
 		return $this->fc->getDeviationHour($h, $radi);
 	}
 
-	public function autotuneGetDeviationDay(){
-		$this->initfc();
-		return $this->fc->getDeviationDay();
-	}
-
 	public function autotunePrintInfo(){
 		$this->initfc();
 		$this->fc->autotunePrint();
@@ -241,7 +236,8 @@ class PVForecastcls{
 			$id = $this->CreateVariableByName($this->instance,$varName,2, $varprof);
 			IPS_SetVariableCustomProfile($id, $varprof);
 			
-			if($cnt == 0 && date("G")<10 || $cnt > 0) setValue($id, $fc["pv_estimate"]);
+			#if($cnt == 0 && date("G")<10 || $cnt > 0) setValue($id, $fc["pv_estimate"]); // Früher nur vor 10 Uhr - heute aktualsiieren wir alles, da alle Daten im FC drin sind.
+			setValue($id, $fc["pv_estimate"]);
 
 			if($cnt >= $days)break;
 			$cnt++;
@@ -714,6 +710,28 @@ class PVForecastcls{
 			$fca["hourly"][$id]["rad_total"] =  intval($ret["hourly"]["direct_normal_irradiance"][$id])+intval($ret["hourly"]["diffuse_radiation"][$id]);
 		}
 
+		/* FORECAST FÜLLEN
+		   manchmal liefert der Forecast nur die Daten ab aktueller Uhrzeit - für dei Forecast Charts / Ausgaben, sollten jedoch alle
+		   werte berücksichtigt werden. Deshalb holen wir aus dem alten Forecast, bei fehlenden Daten diese zurück*/
+		for($ih=6;$ih<16;$ih++){
+		#	echo "\n".$ih."->";
+			$found = false;
+			foreach($fca["hourly"] as $id => $fc){
+				if($fc["day"] == 0 && $fc["hour"] == $ih) $found = true;
+			}
+		#	echo $found;
+			if(!$found){
+				foreach($this->fc["hourly"] as $fo){
+					if($fo["day"]== 0 && $fo["hour"] == $ih){
+						$fca["hourly"][] = $fo;
+					}
+				}
+			}
+		}
+		usort($fca["hourly"], function($a, $b) {
+			return strcmp($a['ts'], $b['ts']);
+		});
+
 		foreach($ret["daily"]["time"] as $id => $val){
 			$fca["daily"][$id]["ts"] = $val;
 			$fca["daily"][$id]["tiso"] = gmdate('Y-m-d\TH:i:s',$val);
@@ -725,6 +743,7 @@ class PVForecastcls{
 			$fca["daily"][$id]["rain"]   =  $ret["daily"]["rain_sum"][$id];
 			$fca["daily"][$id]["snow"]   =  $ret["daily"]["snowfall_sum"][$id];
 		}
+		
 		$this->fc = $fca;
 	}
 
@@ -907,6 +926,12 @@ class PVForecastcls{
 			$hour = date("G");
 			$day  = date("j");
 			$fc = $this->fc;
+			
+			//Aktuellen Tag leeren
+			if($hour > 1 && $hour < 4){
+				unset ($hist["data"][$day]);
+			}
+
 			// Forecast am Morgen befüllen, wenn noch nicht geschehen.
 			if(!isset($hist["data"][$day]) && $hour > 6){
 				foreach($fc["hourly"] as $f){
@@ -990,7 +1015,7 @@ class PVForecastcls{
                 echo str_pad(round(@$e["radi"]),10, " ", STR_PAD_LEFT);
                 echo "\n";
                 $dayIST += @$e["ist"];
-                $dayFC  += $e["fc"];
+                $dayFC  += @$e["fc"];
 				$dayFC_orig += @$e["fc_orig"];
                 $day_old = $day;
             }
@@ -1009,108 +1034,77 @@ class PVForecastcls{
 		echo "FN: $fn";
 	}
 	
-	#### AUTOTUNE - getDay ##########################################################
-	public function getDeviationDay(){
-		static $abw;
-		if(empty($abw))$abw = $this->autotuneCalc();
-		return $abw["day"];
-	}
+
 	#### AUTOTUNE - getHour ########################################################
 	public function getDeviationHour($hour, $radi){
 		static $abw;
 		if(empty($abw))$abw = $this->autotuneCalc();
 
-		$default = (isset($abw[$hour]["default"]))? $abw[$hour]["default"] : 1;
-		if($radi == 0){
-			return $default;
-		}elseif($radi >= 700){
-			return (isset($abw[$hour]["high"]))? $abw[$hour]["high"] : $default;
-
-		}elseif($radi < 700){
-			return (isset($abw[$hour]["low"]))? $abw[$hour]["low"] : $default;
-
+		$h = intval($hour);
+		if($radi < 300){
+			$dev = @$abw[$h]["low"]["deviation"];
+		}elseif($radi >= 300 && $radi < 800){
+			$dev = @$abw[$h]["medium"]["deviation"];
+		}elseif($radi > 800){
+			$dev = @$abw[$h]["high"]["deviation"];
 		}
-		
+		$dev = ($dev == 0)? 1 : $dev;		
+		return $dev;
 	}
 
 	#### AUTOTUNE - calc ##########################################################
 	private function autotuneCalc(){
-			$fn = dirname(__FILE__)."/".$this->instance.".autotune.json";
-			$hist = json_decode(@file_get_contents($fn),true);
-			$dat = $hist["data"];
-			$istK = 0;
-			$fcK  = 0;
-			foreach($dat as $d => $ha){
-				foreach($ha as $h => $e){
-					$fc = (isset($e["fc_orig"]))? $e["fc_orig"] : @$e["fc"];
-					if(@$e["ist"] >  0 && $fc > 0){
-						// Große Abweichungen ausschließen, da bewölkung!
-						if( ($e["ist"] / $e["fc"] < 1.75 ) && ($e["ist"] / $e["fc"] > 0.5 ) ){
-							$istK += $e["ist"];
-							$fcK  += $e["fc"];                     
-						}
+		$fn = dirname(__FILE__)."/".$this->instance.".autotune.json";
+		$hist = json_decode(@file_get_contents($fn),true);
+		$dat = $hist["data"];
+		$istK = 0;
+		$fcK  = 0;
+		ksort($dat);
+	
+		// Matrix für Abweichungen aufbauen ---------------------------------------------------------------------
+		$low    = 300;
+		$high   = 800;
+		foreach($dat as $d => $de){
+			foreach($de as $h => $e){
+				if(@$e["fc_orig"] > 0 && @$e["ist"] > 0){
+					if($e["radi"] < $low){
+						$key = "low";
 					}
-				}
-			}
-		$abw = 1;
-		if($fcK > 0 ) $abw = 1+($istK - $fcK) / $fcK ;
-		$abw = round($abw, 2);
-		$abwA["day"] = $abw;
-		
-		// Stunden berechnen
-		for($hour=5;$hour<22;$hour++){
-			$istK = 0;
-			$fcK  = 0;
-			$istKH = 0; // HIGH Radiation Werte
-			$fcKH  = 0; // HIGH Radiation Werte
-			$istKL = 0;  // LOW Radiation Werte
-			$fcKL  = 0;	// LOW Radiation Werte
-			$abwH = 1;
-			$abwL = 1;
-			foreach($dat as $d => $ha){
-				foreach($ha as $h => $e){
-					if(@$e["ist"] >  0 && @$e["fc"] > 0){
-					
-						// Abweichungen noch für wenig Strahlung und viel Strahlung berechnen
-						if(@$e["radi"] >= 700 && ($h >= $hour - 1 && $h <= $hour + 1)){
-								$istKH += $e["ist"];
-								$fcKH  += $e["fc"];       
-						}elseif(@$e["radi"] < 700 && ($h >= $hour - 1 && $h <= $hour + 1)){
-							$istKL += $e["ist"];
-							$fcKL  += $e["fc"];       
-						}
-						
-						// Große Abweichungen ausschließen, da bewölkung!
-						if( ( ($e["ist"] / $e["fc"] < 2) && ($e["ist"] / $e["fc"] > 0.5) || abs($e["ist"] - $e["fc"]) < 2) && ($h >= $hour - 1 && $h <= $hour + 1)){
-							$istK += $e["ist"];
-							$fcK  += $e["fc"];       
-						}
-
+					if($e["radi"] >= $low && $e["radi"] < $high){
+						$key = "medium";
 					}
-				}
+					if($e["radi"] > $high){
+						$key = "high";
+					}        
+					#echo  $h.": ".  $e["ist_sum"]. "  -->  ".$e["fc_orig"]."\n";
+					@$cArr[$h][$key]["cnt"]++;
+					@$cArr[$h][$key]["ist"] += $e["ist"];
+					@$cArr[$h][$key]["fc_orig"] += $e["fc_orig"];
+				} // if wert vorhanden
 			}
-			if($fcKH != 0){
-				$abwH = 1+($istKH - $fcKH) / $fcKH ;
-				$abwH = round($abwH, 2);        
+		}
+		ksort($cArr);
+		// deviation berechnen  -----------------------------------------------------------------------------
+		foreach($cArr as $h => $e){
+			if(isset($cArr[$h]["low"]["ist"])){
+				$cArr[$h]["low"]["deviation"]       = round($e["low"]["ist"] / $e["low"]["fc_orig"],2);
 			}else{
-				$abw = 1;
+				$cArr[$h]["low"]["deviation"] = 1;
 			}
-			if($fcKL != 0){
-				$abwL = 1+($istKL - $fcKL) / $fcKL ;
-				$abwL = round($abwL, 2);        
+			
+			if(isset($cArr[$h]["medium"]["ist"])){
+				$cArr[$h]["medium"]["deviation"] = round($e["medium"]["ist"] / $e["medium"]["fc_orig"],2);
 			}else{
-				$abw = 1;
-			}			
-
-			if($fcK != 0){
-				$abw = 1+($istK - $fcK) / $fcK ;
-				$abw = round($abw, 2);        
-			}else{
-				$abw = 1;
+				$cArr[$h]["medium"]["deviation"] = 1;
 			}
-		$abwA[$hour] = ["default" =>$abw, "high" => $abwH, "low" => $abwL];
-		} // Hour
-		return $abwA;
+			
+			if(isset($cArr[$h]["high"]["ist"])){
+				$cArr[$h]["high"]["deviation"]     = round($e["high"]["ist"] / $e["high"]["fc_orig"],2);
+			}else{
+				$cArr[$h]["high"]["deviation"] = 1;
+			} 
+		}	
+		return $cArr;		
 	}
 
 
