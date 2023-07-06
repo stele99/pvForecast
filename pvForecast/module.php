@@ -931,11 +931,11 @@ class PVForecastcls{
 			if($hour > 1 && $hour < 4){
 				unset ($hist["data"][$day]);
 			}
-
+			
 			// Forecast am Morgen befüllen, wenn noch nicht geschehen.
-			if(!isset($hist["data"][$day]) && $hour > 6){
+			if($hour > 6){ 
 				foreach($fc["hourly"] as $f){
-					if($f["day"] == 0 && $f["hour"] > 5 && $f["hour"] < 22){                
+					if($f["day"] == 0 && $f["hour"] > 5 && $f["hour"] < 22 && !isset($hist["data"][$day][$f["hour"]]["fc"])){   
 						$hist["data"][$day][$f["hour"]]["fc"] =   $f["pv_estimate"];
 						$hist["data"][$day][$f["hour"]]["fc_orig"] =   $f["pv_estimate_orig"];
 						$hist["data"][$day][$f["hour"]]["radi"] = $f["rad_total"];
@@ -1054,6 +1054,7 @@ class PVForecastcls{
 
 	#### AUTOTUNE - calc ##########################################################
 	private function autotuneCalc(){
+		$cArr = Array();
 		$fn = dirname(__FILE__)."/".$this->instance.".autotune.json";
 		$hist = json_decode(@file_get_contents($fn),true);
 		$dat = $hist["data"];
@@ -1109,5 +1110,3 @@ class PVForecastcls{
 
 
 }
-
-
